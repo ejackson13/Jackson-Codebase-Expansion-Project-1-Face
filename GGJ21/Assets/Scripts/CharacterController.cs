@@ -28,8 +28,11 @@ public class CharacterController : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        sr = GetComponent<SpriteRenderer>();
-        anim = GetComponent<Animator>();
+        //sr = GetComponent<SpriteRenderer>();
+        //anim = GetComponent<Animator>();
+        sr = gameObject.transform.GetChild(3).transform.gameObject.GetComponent<SpriteRenderer>();
+        anim = gameObject.transform.GetChild(3).transform.gameObject.GetComponent<Animator>();
+        anim.enabled = false;
         sr.sprite = defaultSprite;
         flashLight.transform.localPosition = flashlightPositions[3];
     }
@@ -40,6 +43,7 @@ public class CharacterController : MonoBehaviour
         horizontal = Input.GetAxisRaw("Horizontal");
         vertical = Input.GetAxisRaw("Vertical");
 
+        /*
         if(horizontal > 0.5f) // right
         {
             anim.enabled = true;
@@ -79,11 +83,48 @@ public class CharacterController : MonoBehaviour
             anim.SetBool("Sideways", false);
             flashLight.transform.eulerAngles = flashlightRotations[3];
             flashLight.transform.localPosition = flashlightPositions[3];
+            
         }
         else
         {
             anim.enabled = false;
         }
+        */
+        
+
+
+        
+        if (vertical < -.5f || vertical > .5f || horizontal < -.5f || horizontal > .5f)
+        {
+            anim.SetBool("Vertical", true);
+            anim.enabled = true;
+        }
+        else
+        {
+            anim.enabled = false;
+        }
+        
+
+        // get vector from center of screen to mouse position
+        Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector2 centerScreen = Camera.main.ViewportToWorldPoint(new Vector3(.5f, .5f, 0));
+        Vector2 diff = centerScreen - mousePos;
+
+        // calculate angle of vector
+        float angleRad = Mathf.Atan2(diff.y, diff.x);
+        float angleDeg = angleRad * Mathf.Rad2Deg;
+        Debug.Log(angleDeg);
+
+        // rotate character and flashlight to match the angle (have the character point at the mouse)
+        flashLight.transform.eulerAngles = new Vector3(0, 0, angleDeg + 90);
+        sr.gameObject.transform.eulerAngles = new Vector3(0, 0, angleDeg - 90);
+
+        // adjust position of light source (so it looks like it is coming out of the flashlight)
+        // The formula comes from https://math.stackexchange.com/questions/260096/find-the-coordinates-of-a-point-on-a-circle because I never would have figured it out on my own
+        float ellipseX = -.225f * Mathf.Cos(angleRad + (30*Mathf.Deg2Rad));
+        float ellipseY = -.225f * Mathf.Sin(angleRad + (30 * Mathf.Deg2Rad));
+        flashLight.transform.localPosition = new Vector2(ellipseX, ellipseY);
+        
 
     }
 
