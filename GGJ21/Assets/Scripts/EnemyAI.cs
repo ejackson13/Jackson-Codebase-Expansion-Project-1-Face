@@ -40,6 +40,8 @@ public class EnemyAI : MonoBehaviour
     private float nextWaypointDistance = 3;
     private int currentWaypoint = 0;
     public bool reachedEndOfPath;
+    public float detectionDist;
+    private Vector3 playerLastPos;
 
     private int currentTargetPoint = 0;
 
@@ -49,8 +51,8 @@ public class EnemyAI : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        sr = GetComponent<SpriteRenderer>();
-        anim = GetComponent<Animator>();
+        sr = gameObject.transform.GetChild(0).transform.gameObject.GetComponent<SpriteRenderer>();
+        anim = gameObject.transform.GetChild(0).transform.gameObject.GetComponent<Animator>();
         audioSource = GetComponent<AudioSource>();
         sr.sprite = defaultSprite;
 
@@ -63,7 +65,8 @@ public class EnemyAI : MonoBehaviour
     {
         float distanceToPlayer = Vector2.Distance(transform.position, player.transform.position);
 
-        if (distanceToPlayer < 10)
+        /*
+        if (distanceToPlayer < detectionDist)
         {
             isChasing = true;
             targetPosition = player.transform;
@@ -71,6 +74,17 @@ public class EnemyAI : MonoBehaviour
         else
         {
             isChasing = false;
+            PatrolPath();
+        }
+        */
+
+        if (distanceToPlayer < detectionDist)
+        {
+            isChasing = true;
+            targetPosition = player.transform;
+            playerLastPos = new Vector3(player.transform.position.x, player.transform.position.y, player.transform.position.z);
+        } else if (!isChasing)
+        {
             PatrolPath();
         }
 
@@ -94,6 +108,7 @@ public class EnemyAI : MonoBehaviour
                 else
                 {
                     SetPath();
+                    isChasing = false;
                     reachedEndOfPath = true;
                     break;
                 }
@@ -110,9 +125,11 @@ public class EnemyAI : MonoBehaviour
         //horizontal += velocity.x * Time.deltaTime;
         //vertical += velocity.y * Time.deltaTime;
 
+        
         horizontal = dir.x;
         vertical = dir.y;
 
+        /*
         if (horizontal > 0.5f)
         {
             sr.flipX = true;
@@ -144,7 +161,16 @@ public class EnemyAI : MonoBehaviour
             anim.SetBool("Sideways", false);
             anim.SetBool("Vertical", false);
             sr.sprite = defaultSprite;
-        }
+        } 
+        */
+        
+
+        
+        anim.SetBool("Vertical", true);
+        float angleRad = Mathf.Atan2(vertical, horizontal);
+        float angleDeg = angleRad * Mathf.Rad2Deg;
+        sr.gameObject.transform.eulerAngles = new Vector3(0, 0, angleDeg + 90);
+        
 
         Pathfind();
     }
@@ -181,7 +207,7 @@ public class EnemyAI : MonoBehaviour
                     yield return null;
                     StartCoroutine(MonsterSounds());
                 }
-                else if (distanceToPlayer > 10 && distanceToPlayer < 20)
+                else if (distanceToPlayer > detectionDist && distanceToPlayer < 20)
                 {
                     Debug.Log("Playing closer sound");
                     audioSource.volume = 0.8f;
@@ -261,7 +287,14 @@ public class EnemyAI : MonoBehaviour
 
     void Pathfind()
     {
-        seeker.StartPath(transform.position, targetPosition.position, OnPathComplete);
+        if (isChasing)
+        {
+            seeker.StartPath(transform.position, playerLastPos, OnPathComplete);
+        }
+        else
+        {
+            seeker.StartPath(transform.position, targetPosition.position, OnPathComplete);
+        }
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -294,6 +327,6 @@ public class EnemyAI : MonoBehaviour
     {
         // Display the explosion radius when selected
         Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(transform.position, 10);
+        Gizmos.DrawWireSphere(transform.position, detectionDist);
     }
 }
