@@ -40,8 +40,9 @@ public class EnemyAI : MonoBehaviour
     private float nextWaypointDistance = 3;
     private int currentWaypoint = 0;
     public bool reachedEndOfPath;
-    public float detectionDist;
-    private Vector3 playerLastPos;
+    public float detectionDist; // the sitance at which the monster will detect the player without seeing them
+    private Vector3 playerLastPos; // the position the player was last seen at
+    public float visionDist;  // the distance the monster is able to see
 
     private int currentTargetPoint = 0;
 
@@ -65,25 +66,21 @@ public class EnemyAI : MonoBehaviour
     {
         float distanceToPlayer = Vector2.Distance(transform.position, player.transform.position);
 
-        /*
-        if (distanceToPlayer < detectionDist)
-        {
-            isChasing = true;
-            targetPosition = player.transform;
-        }
-        else
-        {
-            isChasing = false;
-            PatrolPath();
-        }
-        */
+        // send out raycast from monster in direction they are looking, filtering out all layers other than the default layer (where the player is)
+        RaycastHit2D hit;
+        string[] layersToMask = {LayerMask.LayerToName(0)};
+        hit = Physics2D.Raycast(transform.position, new Vector2(horizontal, vertical), visionDist, LayerMask.GetMask(layersToMask));
 
-        if (distanceToPlayer < detectionDist)
+        // if the player is within the detection radius or is hit by the raycast, enter the chase phase
+        if ( distanceToPlayer < detectionDist || (hit.collider != null && hit.collider.gameObject.CompareTag("Player")))
         {
+            //Debug.Log("I see you!");
             isChasing = true;
             targetPosition = player.transform;
             playerLastPos = new Vector3(player.transform.position.x, player.transform.position.y, player.transform.position.z);
-        } else if (!isChasing)
+        }
+        // resets the enemies target position to the current room it's patroling toward, but we don't want to override if the enemy is pursuing the player's last position
+        else if (!isChasing)
         {
             PatrolPath();
         }
@@ -127,51 +124,16 @@ public class EnemyAI : MonoBehaviour
 
         
         horizontal = dir.x;
-        vertical = dir.y;
-
-        /*
-        if (horizontal > 0.5f)
-        {
-            sr.flipX = true;
-            anim.SetBool("Sideways", true);
-            anim.SetBool("Vertical", false);
-        }
-        else if (horizontal < -0.5f)
-        {
-            sr.flipX = false;
-            anim.SetBool("Sideways", true);
-            anim.SetBool("Vertical", false);
-        }
-        else if (vertical > 0.5f)
-        {
-            sr.flipY = true;
-            anim.SetBool("Vertical", true);
-            anim.SetBool("Sideways", false);
-        }
-        else if (vertical < -0.5f)
-        {
-            sr.flipY = false;
-            anim.SetBool("Vertical", true);
-            anim.SetBool("Sideways", false);
-        }
-        else
-        {
-            sr.flipX = false;
-            sr.flipY = false;
-            anim.SetBool("Sideways", false);
-            anim.SetBool("Vertical", false);
-            sr.sprite = defaultSprite;
-        } 
-        */
+        vertical = dir.y;  
         
-
-        
+        // get the angle the enemy is looking at and turn the sprite in that direction (necessary for both aesthetics and the raycast to be looking in the proper direction)
         anim.SetBool("Vertical", true);
         float angleRad = Mathf.Atan2(vertical, horizontal);
         float angleDeg = angleRad * Mathf.Rad2Deg;
         sr.gameObject.transform.eulerAngles = new Vector3(0, 0, angleDeg + 90);
         
 
+        // move toward the destination set before
         Pathfind();
     }
 
@@ -289,8 +251,9 @@ public class EnemyAI : MonoBehaviour
     {
         if (isChasing)
         {
+            // move the enemy toward the player's last known position (keeps the enemy from immediately giving up the second the player is out of sight/range)
             seeker.StartPath(transform.position, playerLastPos, OnPathComplete);
-        }
+        } 
         else
         {
             seeker.StartPath(transform.position, targetPosition.position, OnPathComplete);
@@ -328,5 +291,7 @@ public class EnemyAI : MonoBehaviour
         // Display the explosion radius when selected
         Gizmos.color = Color.green;
         Gizmos.DrawWireSphere(transform.position, detectionDist);
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(transform.position, (new Vector3 (horizontal, vertical).normalized * visionDist) + transform.position);;
     }
 }

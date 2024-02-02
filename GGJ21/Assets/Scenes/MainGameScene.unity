@@ -825,7 +825,7 @@ GameObject:
   - component: {fileID: 448547438}
   - component: {fileID: 448547440}
   - component: {fileID: 448547439}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Sprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1120,7 +1120,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.028749779, y: 0.058332745}
   m_AnchorMax: {x: 0.23249957, y: 0.10833364}
-  m_AnchoredPosition: {x: 2.5, y: 1}
+  m_AnchoredPosition: {x: 2.5, y: 0.9999695}
   m_SizeDelta: {x: -3, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &533780745
@@ -2736,7 +2736,7 @@ GameObject:
   - component: {fileID: 1927703348}
   - component: {fileID: 1927703349}
   - component: {fileID: 1927703350}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Enemy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2897,6 +2897,7 @@ MonoBehaviour:
     type: 3}
   reachedEndOfPath: 0
   detectionDist: 5
+  visionDist: 15
 --- !u!114 &1927703347
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3164,6 +3165,21 @@ PrefabInstance:
         type: 3}
       propertyPath: m_RootOrder
       value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 4674996494713867822, guid: ec2be720a3ec16c4ca6e6b352a09cb37,
+        type: 3}
+      propertyPath: m_LocalBounds.m_Center.y
+      value: -0.00000011920929
+      objectReference: {fileID: 0}
+    - target: {fileID: 4674996494713867822, guid: ec2be720a3ec16c4ca6e6b352a09cb37,
+        type: 3}
+      propertyPath: m_LocalBounds.m_Extent.x
+      value: 0.9985302
+      objectReference: {fileID: 0}
+    - target: {fileID: 4674996494713867822, guid: ec2be720a3ec16c4ca6e6b352a09cb37,
+        type: 3}
+      propertyPath: m_LocalBounds.m_Extent.y
+      value: 0.99853027
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
